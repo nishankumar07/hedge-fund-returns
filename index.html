@@ -1,509 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hedge Fund Returns — March 2026</title>
-<meta name="description" content="March vs YTD returns for 65 hedge funds. Interactive scatter plot. Source: Bloomberg.">
-<meta property="og:title" content="Hedge Fund Returns — March 2026">
-<meta property="og:description" content="March vs YTD returns for 65 hedge funds.">
-<meta name="twitter:card" content="summary_large_image">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hedge Fund Performance — March &amp; Q1 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg:       #0a0b0f;
-    --surface:  #111318;
-    --border:   #1e2030;
-    --border2:  #2a2d40;
-    --text:     #e8e6de;
-    --muted:    #6b6960;
-    --dim:      #3a3830;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f7f6f3;
+      color: #1a1a18;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
 
-    --green:    #22c55e;
-    --green-dk: #15803d;
-    --red:      #ef4444;
-    --red-dk:   #b91c1c;
-    --purple:   #a78bfa;
-    --purple-dk:#6d28d9;
-    --amber:    #fbbf24;
-    --amber-dk: #b45309;
-  }
+    .page { max-width: 860px; margin: 0 auto; }
 
-  html, body { height: 100%; background: var(--bg); color: var(--text); }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    display: flex; flex-direction: column; min-height: 100vh;
-  }
+    /* Header */
+    .header { margin-bottom: 1.75rem; }
+    .header h1 { font-size: 22px; font-weight: 600; color: #1a1a18; line-height: 1.3; }
+    .header p { font-size: 13px; color: #6b6b65; margin-top: 5px; }
 
-  /* ── header ── */
-  header {
-    padding: 28px 40px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
-    flex-wrap: wrap;
-  }
-  .header-left h1 {
-    font-size: clamp(18px, 2.5vw, 26px);
-    font-weight: 600; letter-spacing: -0.3px;
-    color: var(--text);
-  }
-  .header-left p {
-    margin-top: 5px; font-size: 13px; color: var(--muted);
-  }
-  .header-right {
-    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-  }
-  .pill {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--muted);
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 20px; padding: 5px 11px;
-  }
-  .pill-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
+    /* Summary cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 560px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .metric {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+    .metric .lbl { font-size: 11px; color: #888780; margin-bottom: 4px; }
+    .metric .val { font-size: 20px; font-weight: 600; }
+    .val.up { color: #1D9E75; }
+    .val.dn { color: #D85A30; }
 
-  /* ── controls ── */
-  .controls {
-    padding: 14px 40px;
-    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .search-wrap {
-    position: relative; flex: 1; min-width: 200px; max-width: 320px;
-  }
-  .search-wrap svg {
-    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-    width: 14px; height: 14px; stroke: var(--muted); fill: none;
-    pointer-events: none;
-  }
-  #search {
-    width: 100%; padding: 7px 10px 7px 32px;
-    background: var(--bg); border: 1px solid var(--border2);
-    border-radius: 8px; color: var(--text); font-size: 13px; outline: none;
-  }
-  #search:focus { border-color: #4a4d66; }
-  #search::placeholder { color: var(--muted); }
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .tab {
+      font-size: 13px;
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 0.5px solid rgba(0,0,0,0.15);
+      cursor: pointer;
+      background: transparent;
+      color: #6b6b65;
+      transition: all 0.15s;
+    }
+    .tab:hover { background: #eeeee8; }
+    .tab.active { background: #1a1a18; color: #fff; border-color: transparent; }
 
-  .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
-  .fbtn {
-    padding: 6px 13px; font-size: 12px; border-radius: 20px; cursor: pointer;
-    border: 1px solid var(--border2); background: transparent;
-    color: var(--muted); transition: all 0.12s;
-  }
-  .fbtn:hover { border-color: #4a4d66; color: var(--text); }
-  .fbtn.active { color: var(--bg); border-color: transparent; }
-  .fbtn.active.all    { background: var(--text); color: var(--bg); }
-  .fbtn.active.win    { background: var(--green); }
-  .fbtn.active.lose   { background: var(--red); }
-  .fbtn.active.mup    { background: var(--purple); }
-  .fbtn.active.mdown  { background: var(--amber); }
+    /* Legend */
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 1rem; font-size: 12px; color: #6b6b65; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
-  .count-badge {
-    margin-left: auto; font-size: 12px; color: var(--muted);
-    white-space: nowrap;
-  }
+    /* Section labels */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #888780;
+      margin-bottom: 8px;
+    }
+    .chart-section { margin-bottom: 1.5rem; }
 
-  /* ── chart area ── */
-  main { flex: 1; padding: 20px 40px 24px; display: flex; flex-direction: column; gap: 0; }
-  #chart-container { position: relative; width: 100%; flex: 1; min-height: 420px; }
-  #scatter { display: block; width: 100%; height: 100%; }
+    /* Bar rows */
+    .bar-list { display: flex; flex-direction: column; gap: 3px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .fund-name {
+      font-size: 12px;
+      color: #1a1a18;
+      width: 175px;
+      flex-shrink: 0;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bar-track { flex: 1; height: 20px; display: flex; align-items: center; }
+    .bar-fill { height: 14px; border-radius: 2px; min-width: 2px; transition: width 0.3s ease; }
+    .bar-val { font-size: 11px; margin-left: 6px; font-weight: 600; white-space: nowrap; }
 
-  /* ── tooltip ── */
-  #tooltip {
-    position: fixed; pointer-events: none; opacity: 0;
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 10px; padding: 11px 14px;
-    font-size: 13px; color: var(--text);
-    transition: opacity 0.1s; z-index: 100;
-    min-width: 170px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  }
-  #tooltip .t-name { font-weight: 600; font-size: 13px; margin-bottom: 7px; line-height: 1.3; }
-  #tooltip .t-row  { display: flex; justify-content: space-between; gap: 16px;
-                     font-size: 12px; color: var(--muted); margin-top: 3px; }
-  #tooltip .t-val  { font-weight: 500; }
-  .tv-pos { color: var(--green) !important; }
-  .tv-neg { color: var(--red)   !important; }
+    /* Scatter */
+    .scatter-wrap { position: relative; width: 100%; height: 420px; }
 
-  /* ── fund detail panel ── */
-  #detail {
-    display: none; position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 12px; padding: 20px; width: 220px; z-index: 50;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
-  }
-  #detail .d-close {
-    position: absolute; top: 10px; right: 12px; cursor: pointer;
-    font-size: 18px; color: var(--muted); line-height: 1;
-  }
-  #detail .d-name  { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-right: 20px; line-height: 1.3; }
-  #detail .d-row   { display: flex; justify-content: space-between;
-                     padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  #detail .d-row:last-child { border-bottom: none; }
-  #detail .d-label { color: var(--muted); }
+    /* Footer */
+    .footer {
+      font-size: 11px;
+      color: #888780;
+      border-top: 0.5px solid rgba(0,0,0,0.1);
+      padding-top: 10px;
+      margin-top: 1.5rem;
+    }
 
-  /* ── footer ── */
-  footer {
-    padding: 12px 40px; border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--dim);
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-  }
-
-  /* axis svg text */
-  .ax-tick  { font-size: 11px; fill: #3a3830; font-family: inherit; }
-  .ax-label { font-size: 12px; fill: #6b6960; font-family: inherit; }
-  .q-lbl    { font-size: 10.5px; fill: #2e3045; font-family: inherit; letter-spacing: 0.02em; }
-
-  @media (max-width: 600px) {
-    header, .controls, main, footer { padding-left: 16px; padding-right: 16px; }
-    #detail { right: 12px; width: 190px; }
-  }
-</style>
+    /* Responsive bar names */
+    @media (max-width: 480px) {
+      .fund-name { width: 110px; font-size: 11px; }
+    }
+  </style>
 </head>
 <body>
+<div class="page">
 
-<header>
-  <div class="header-left">
-    <h1>Hedge Fund Returns &nbsp;·&nbsp; March 2026</h1>
-    <p>March vs year-to-date performance &nbsp;·&nbsp; 65 funds &nbsp;·&nbsp; net of fees &nbsp;·&nbsp; Source: Bloomberg</p>
+  <div class="header">
+    <h1>Hedge fund performance — March &amp; Q1 2026</h1>
+    <p>Net returns across 70 funds &nbsp;·&nbsp; Source: Bloomberg &nbsp;·&nbsp; *Caxton through March 20</p>
   </div>
-  <div class="header-right">
-    <div class="pill"><div class="pill-dot" style="background:var(--green)"></div>Both positive</div>
-    <div class="pill"><div class="pill-dot" style="background:var(--red)"></div>Both negative</div>
-    <div class="pill"><div class="pill-dot" style="background:var(--purple)"></div>March ↑ &nbsp;YTD ↓</div>
-    <div class="pill"><div class="pill-dot" style="background:var(--amber)"></div>March ↓ &nbsp;YTD ↑</div>
-  </div>
-</header>
 
-<div class="controls">
-  <div class="search-wrap">
-    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search" placeholder="Search fund…">
+  <div class="summary-grid">
+    <div class="metric"><div class="lbl">Funds in green (March)</div><div class="val up" id="m-winners">—</div></div>
+    <div class="metric"><div class="lbl">Funds in red (March)</div><div class="val dn" id="m-losers">—</div></div>
+    <div class="metric"><div class="lbl">Best March return</div><div class="val up" id="m-best">—</div></div>
+    <div class="metric"><div class="lbl">Worst March return</div><div class="val dn" id="m-worst">—</div></div>
   </div>
-  <div class="filter-btns">
-    <button class="fbtn active all"  data-q="all">All funds</button>
-    <button class="fbtn win"         data-q="win">March ↑ · YTD ↑</button>
-    <button class="fbtn lose"        data-q="lose">March ↓ · YTD ↓</button>
-    <button class="fbtn mup"         data-q="mup">March ↑ · YTD ↓</button>
-    <button class="fbtn mdown"       data-q="mdown">March ↓ · YTD ↑</button>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchView('scatter', this)">Scatter view</button>
+    <button class="tab" onclick="switchView('march', this)">March</button>
+    <button class="tab" onclick="switchView('ytd', this)">Q1 YTD</button>
   </div>
-  <span class="count-badge" id="count">65 funds</span>
+
+  <!-- Scatter -->
+  <div id="scatter-view">
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;"></span>Both periods positive</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#D85A30;"></span>Both periods negative</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#EF9F27;"></span>Mixed</span>
+    </div>
+    <div class="scatter-wrap">
+      <canvas id="scatterChart" role="img" aria-label="Scatter chart of hedge fund March vs Q1 YTD 2026 returns. Hover dots to see fund names."></canvas>
+    </div>
+  </div>
+
+  <!-- Bar chart -->
+  <div id="bar-view" style="display:none;">
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#1D9E75;"></span>Positive</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#D85A30;"></span>Negative</span>
+    </div>
+    <div class="chart-section">
+      <div class="section-label" id="winners-label">Winners</div>
+      <div class="bar-list" id="winners-list"></div>
+    </div>
+    <div class="chart-section" style="margin-top:1.75rem;">
+      <div class="section-label" id="losers-label">Losers</div>
+      <div class="bar-list" id="losers-list"></div>
+    </div>
+  </div>
+
+  <div class="footer">All returns net of fees &nbsp;·&nbsp; Data via Bloomberg reporting &nbsp;·&nbsp; Interactive chart for LinkedIn newsletter</div>
 </div>
-
-<main>
-  <div id="chart-container">
-    <svg id="scatter" aria-label="Scatter plot of 65 hedge funds: March return on x-axis, YTD return on y-axis."></svg>
-  </div>
-</main>
-
-<div id="tooltip"></div>
-
-<div id="detail">
-  <span class="d-close" id="d-close">×</span>
-  <div class="d-name" id="d-name"></div>
-  <div class="d-row"><span class="d-label">March</span><span id="d-march" class="t-val"></span></div>
-  <div class="d-row"><span class="d-label">YTD</span><span id="d-ytd"   class="t-val"></span></div>
-  <div class="d-row"><span class="d-label">Quadrant</span><span id="d-quad" class="t-val" style="font-size:11px;"></span></div>
-</div>
-
-<footer>
-  <span>Source: Bloomberg reporting · All returns net of fees · *Caxton Macro through March 20</span>
-  <span>Click any dot to pin details · Hover to inspect · Filter by quadrant above</span>
-</footer>
 
 <script>
-const FUNDS = [
-  ["Andurand Commodities",30.6,31.1],["36 South Kohinoor",8.6,18.6],["Kepos Alpha",7.5,9.3],
-  ["CFM Cumulus",6.0,6.7],["CFM Stratus",6.0,5.5],["Two Seas Global",5.0,12.0],
-  ["Saba Capital",4.4,7.3],["DE Shaw Oculus",3.9,7.0],["ADAPT Relative Value",3.3,7.5],
-  ["Graham Tactical Trend",3.1,13.1],["Two Sigma Abs Return",3.0,3.7],["Two Sigma Spectrum",2.5,3.0],
-  ["DE Shaw Composite",2.2,4.9],["Rokos",2.1,4.7],["Citadel Tactical Trading",1.8,5.3],
-  ["Renaissance RIDA",1.2,8.0],["Renaissance RIEF",0.9,-0.8],["Citadel Equities",0.7,2.9],
-  ["Glazer Enhanced",0.6,1.7],["Winton",0.3,6.7],["Centiva",0.1,3.9],
-  ["Schonfeld Fundamental",0.0,1.6],["Schonfeld Strategic",0.0,0.9],["Boussard & Gavaudan",0.0,3.9],
-  ["Kite Lake Special Opps",-0.1,2.5],["Modular Asian Macro",-0.5,2.9],["Jain Global",-0.5,-2.7],
-  ["Point72",-0.7,3.8],["North Rock",-0.7,2.1],["Shiprock",-1.0,6.8],
-  ["Millennium",-1.2,1.0],["Walleye",-1.3,-2.6],["Man Strategies 1783",-1.6,4.2],
-  ["Greenlight",-1.8,6.5],["Mission Crest Dynamic",-1.8,6.9],["Verition",-1.9,-0.4],
-  ["Brummer Multi-Strategy",-1.9,4.3],["Citadel Wellington",-1.9,1.0],["LMR",-2.4,-0.3],
-  ["Pinpoint Multi-Strategy",-2.5,4.0],["Marshall Wace MN TOPS",-2.5,-0.3],["Graham Quant Macro",-2.9,6.6],
-  ["Tiger Global Crossover",-3.2,-1.2],["Brevan Howard Alpha",-3.9,0.3],["Discovery",-4.1,5.7],
-  ["Viking Global",-4.1,-4.6],["Dymon",-4.3,6.0],["Balyasny",-4.3,-3.8],
-  ["ExodusPoint",-4.5,-2.0],["Coatue",-4.8,-3.5],["Maverick Fund",-5.0,-1.5],
-  ["FengHe Asia",-5.3,11.5],["Marshall Wace Eureka",-5.3,0.8],["Graham Absolute Return",-6.1,-4.7],
-  ["Pharo Macro",-6.2,4.4],["Brevan Howard Master",-6.6,-1.1],["RV Capital Enhanced",-6.9,-5.8],
-  ["Tiger Global",-7.3,-10.5],["Maverick Long Enhanced",-8.1,-4.5],["Citadel Global Fixed Income",-8.2,-5.5],
-  ["Quantedge Global",-8.4,12.7],["Taula Macro",-8.6,-7.6],["EDL Macro",-11.2,-7.5],
-  ["Haidar Jupiter",-12.0,13.4],["Caxton Macro",-15.0,null]
+const funds = [
+  {name:"Andurand Commodities",       strat:"Commodities",      march:30.6,  ytd:31.1},
+  {name:"36 South Kohinoor",          strat:"Long Vol",          march:8.6,   ytd:18.6},
+  {name:"Kepos Alpha",                strat:"Systematic Macro",  march:7.5,   ytd:9.3},
+  {name:"CFM Cumulus",                strat:"Quant",             march:6.0,   ytd:6.7},
+  {name:"CFM Stratus",                strat:"Quant Multistrat",  march:6.0,   ytd:5.5},
+  {name:"Two Seas Global",            strat:"Event-Driven",      march:5.0,   ytd:12.0},
+  {name:"Saba Capital",               strat:"Credit RV",         march:4.4,   ytd:7.3},
+  {name:"DE Shaw Oculus",             strat:"Multistrat",        march:3.9,   ytd:7.0},
+  {name:"ADAPT",                      strat:"Relative Value",    march:3.3,   ytd:7.5},
+  {name:"Graham Tactical Trend",      strat:"Quant",             march:3.1,   ytd:13.1},
+  {name:"Two Sigma Absolute Return",  strat:"Multistrat",        march:3.0,   ytd:3.7},
+  {name:"Two Sigma Spectrum",         strat:"Multistrat",        march:2.5,   ytd:3.0},
+  {name:"DE Shaw Composite",          strat:"Multistrat",        march:2.2,   ytd:4.9},
+  {name:"Rokos",                      strat:"Macro",             march:2.1,   ytd:4.7},
+  {name:"Citadel Tactical Trading",   strat:"Multistrat",        march:1.8,   ytd:5.3},
+  {name:"Renaissance RIDA",           strat:"Quant",             march:1.2,   ytd:8.0},
+  {name:"Renaissance RIEF",           strat:"Quant",             march:0.9,   ytd:-0.8},
+  {name:"Citadel Equities",           strat:"Equity",            march:0.7,   ytd:2.9},
+  {name:"Glazer Enhanced",            strat:"Event-Driven",      march:0.6,   ytd:1.7},
+  {name:"Winton",                     strat:"Multistrat",        march:0.3,   ytd:6.7},
+  {name:"Centiva",                    strat:"Multistrat",        march:0.1,   ytd:3.9},
+  {name:"Schonfeld Fundamental Eq",   strat:"Equity",            march:0.0,   ytd:1.6},
+  {name:"Schonfeld Strategic Partners",strat:"Multistrat",       march:0.0,   ytd:0.9},
+  {name:"Boussard & Gavaudan",        strat:"Event-Driven",      march:0.0,   ytd:3.9},
+  {name:"Kite Lake Special Opps",     strat:"Event-Driven",      march:-0.1,  ytd:2.5},
+  {name:"Modular Asian Macro",        strat:"Macro",             march:-0.5,  ytd:2.9},
+  {name:"Jain Global",                strat:"Multistrat",        march:-0.5,  ytd:-2.7},
+  {name:"Point72",                    strat:"Multistrat",        march:-0.7,  ytd:3.8},
+  {name:"North Rock",                 strat:"Equity",            march:-0.7,  ytd:2.1},
+  {name:"Shiprock",                   strat:"Distressed",        march:-1.0,  ytd:6.8},
+  {name:"Millennium",                 strat:"Multistrat",        march:-1.2,  ytd:1.0},
+  {name:"Walleye",                    strat:"Multistrat",        march:-1.3,  ytd:-2.6},
+  {name:"Man 1783",                   strat:"Multistrat",        march:-1.6,  ytd:4.2},
+  {name:"Greenlight",                 strat:"Equity",            march:-1.8,  ytd:6.5},
+  {name:"Mission Crest Dynamic",      strat:"Multistrat",        march:-1.8,  ytd:6.9},
+  {name:"Verition",                   strat:"Multistrat",        march:-1.9,  ytd:-0.4},
+  {name:"Brummer Multi-Strategy",     strat:"Multistrat",        march:-1.9,  ytd:4.3},
+  {name:"Citadel Wellington",         strat:"Multistrat",        march:-1.9,  ytd:1.0},
+  {name:"LMR",                        strat:"Multistrat",        march:-2.4,  ytd:-0.3},
+  {name:"Pinpoint Multi-Strategy",    strat:"Multistrat",        march:-2.5,  ytd:4.0},
+  {name:"Marshall Wace MN TOPS",      strat:"Systematic",        march:-2.5,  ytd:-0.3},
+  {name:"Graham Quant Macro",         strat:"Quant",             march:-2.9,  ytd:6.6},
+  {name:"Tiger Global Crossover",     strat:"Equity/Venture",    march:-3.2,  ytd:-1.2},
+  {name:"Brevan Howard Alpha",        strat:"Multistrat",        march:-3.9,  ytd:0.3},
+  {name:"Discovery",                  strat:"Macro",             march:-4.1,  ytd:5.7},
+  {name:"Viking Global",              strat:"Equity",            march:-4.1,  ytd:-4.6},
+  {name:"Dymon",                      strat:"Multistrat",        march:-4.3,  ytd:6.0},
+  {name:"Balyasny",                   strat:"Multistrat",        march:-4.3,  ytd:-3.8},
+  {name:"ExodusPoint",                strat:"Multistrat",        march:-4.5,  ytd:-2.0},
+  {name:"Coatue",                     strat:"Equity",            march:-4.8,  ytd:-3.5},
+  {name:"Maverick Fund",              strat:"Equity",            march:-5.0,  ytd:-1.5},
+  {name:"FengHe Asia",                strat:"Equity",            march:-5.3,  ytd:11.5},
+  {name:"Marshall Wace Eureka",       strat:"Equity",            march:-5.3,  ytd:0.8},
+  {name:"Graham Absolute Return",     strat:"Macro",             march:-6.1,  ytd:-4.7},
+  {name:"Pharo Macro",                strat:"Macro",             march:-6.2,  ytd:4.4},
+  {name:"Brevan Howard Master",       strat:"Macro",             march:-6.6,  ytd:-1.1},
+  {name:"RV Capital Enhanced",        strat:"Macro",             march:-6.9,  ytd:-5.8},
+  {name:"Tiger Global",               strat:"Equity",            march:-7.3,  ytd:-10.5},
+  {name:"Maverick Long Enhanced",     strat:"Equity",            march:-8.1,  ytd:-4.5},
+  {name:"Citadel Global Fixed Income",strat:"Fixed Income",      march:-8.2,  ytd:-5.5},
+  {name:"Quantedge Global",           strat:"Quant",             march:-8.4,  ytd:12.7},
+  {name:"Taula",                      strat:"Macro",             march:-8.6,  ytd:-7.6},
+  {name:"EDL",                        strat:"Macro",             march:-11.2, ytd:-7.5},
+  {name:"Haidar Jupiter",             strat:"Macro",             march:-12.0, ytd:13.4},
+  {name:"Caxton Macro*",              strat:"Macro",             march:-15.0, ytd:null},
 ];
 
-function quadrant(m, y) {
-  if (m >= 0 && (y === null || y >= 0)) return 'win';
-  if (m <  0 && y !== null && y < 0)   return 'lose';
-  if (m >= 0 && y !== null && y < 0)   return 'mup';
-  return 'mdown';
-}
-function quadLabel(q) {
-  return { win:'March ↑ · YTD ↑', lose:'March ↓ · YTD ↓', mup:'March ↑ · YTD ↓', mdown:'March ↓ · YTD ↑' }[q];
-}
-function quadColor(q) {
-  return { win:'#22c55e', lose:'#ef4444', mup:'#a78bfa', mdown:'#fbbf24' }[q];
-}
-function quadColorDk(q) {
-  return { win:'#15803d', lose:'#b91c1c', mup:'#6d28d9', mdown:'#b45309' }[q];
-}
-function fmt(v, na='N/A') {
-  if (v === null) return na;
-  return (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-}
-function valClass(v) {
-  if (v === null) return '';
-  return v >= 0 ? 'tv-pos' : 'tv-neg';
-}
+let currentField = 'march';
+let scatterChart = null;
 
-// state
-let activeQ   = 'all';
-let searchTxt = '';
-let pinned    = null;
-
-const svg     = document.getElementById('scatter');
-const tip     = document.getElementById('tooltip');
-const detail  = document.getElementById('detail');
-const countEl = document.getElementById('count');
-
-// ns helper
-const NS = 'http://www.w3.org/2000/svg';
-function el(tag, attrs, parent) {
-  const e = document.createElementNS(NS, tag);
-  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k,v);
-  if (parent) parent.appendChild(e);
-  return e;
-}
-
-function render() {
-  svg.innerHTML = '';
-
-  const rect = svg.getBoundingClientRect();
-  const W    = rect.width  || svg.parentElement.clientWidth  || 900;
-  const H    = rect.height || svg.parentElement.clientHeight || 500;
-
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-
-  const pad = { t:32, r:32, b:54, l:62 };
-  const pw  = W - pad.l - pad.r;
-  const ph  = H - pad.t - pad.b;
-
-  const xMin = -17, xMax = 33;
-  const yMin = -13, yMax = 34;
-
-  function sx(v) { return pad.l + (v - xMin) / (xMax - xMin) * pw; }
-  function sy(v) { return pad.t + (yMax - v) / (yMax - yMin) * ph; }
-
-  const defs = el('defs', {}, svg);
-  // clip
-  const cp = el('clipPath', {id:'cp'}, defs);
-  el('rect', {x:pad.l, y:pad.t, width:pw, height:ph}, cp);
-
-  // quadrant backgrounds
-  const qbg = [
-    {q:'win',   x:sx(0),   y:pad.t,       w:sx(xMax)-sx(0), h:sy(0)-pad.t},
-    {q:'mup',   x:pad.l,   y:pad.t,       w:sx(0)-pad.l,    h:sy(0)-pad.t},
-    {q:'lose',  x:pad.l,   y:sy(0),       w:sx(0)-pad.l,    h:ph-(sy(0)-pad.t)},
-    {q:'mdown', x:sx(0),   y:sy(0),       w:sx(xMax)-sx(0), h:ph-(sy(0)-pad.t)},
-  ];
-  for (const q of qbg) {
-    const opacity = (activeQ === 'all' || activeQ === q.q) ? '0.035' : '0.012';
-    el('rect', {x:q.x, y:q.y, width:Math.max(0,q.w), height:Math.max(0,q.h),
-      fill:quadColor(q.q), opacity, 'clip-path':'url(#cp)'}, svg);
+function switchView(v, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (v === 'scatter') {
+    document.getElementById('bar-view').style.display = 'none';
+    document.getElementById('scatter-view').style.display = 'block';
+    renderScatter();
+  } else {
+    document.getElementById('bar-view').style.display = 'block';
+    document.getElementById('scatter-view').style.display = 'none';
+    currentField = v;
+    renderBars();
   }
+}
 
-  // grid
-  const xTicks = [-15,-10,-5,0,5,10,15,20,25,30];
-  const yTicks = [-10,-5,0,5,10,15,20,25,30];
+function renderBars() {
+  const sorted = [...funds]
+    .filter(f => f[currentField] !== null)
+    .sort((a, b) => b[currentField] - a[currentField]);
+  const winners = sorted.filter(f => f[currentField] >= 0);
+  const losers  = sorted.filter(f => f[currentField] < 0);
+  const maxVal  = Math.max(...sorted.map(f => Math.abs(f[currentField])));
 
-  for (const v of xTicks) {
-    const x = sx(v); const isZero = v === 0;
-    el('line', {x1:x, y1:pad.t, x2:x, y2:pad.t+ph,
-      stroke: isZero ? '#2a2d40' : '#181a26',
-      'stroke-width': isZero ? '1' : '0.5'}, svg);
-    const t = el('text', {x, y:pad.t+ph+18, class:'ax-tick', 'text-anchor':'middle'}, svg);
-    t.textContent = (v > 0 ? '+' : '') + v + '%';
+  document.getElementById('winners-label').textContent = `Winners (${winners.length})`;
+  document.getElementById('losers-label').textContent  = `Losers (${losers.length})`;
+
+  function buildList(arr, containerId, color) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = '';
+    arr.forEach(f => {
+      const pct = (Math.abs(f[currentField]) / maxVal * 100).toFixed(1);
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="fund-name" title="${f.name}">${f.name}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${color};"></div>
+          <span class="bar-val" style="color:${color};">${f[currentField] > 0 ? '+' : ''}${f[currentField].toFixed(1)}%</span>
+        </div>`;
+      el.appendChild(row);
+    });
   }
-  for (const v of yTicks) {
-    const y = sy(v); const isZero = v === 0;
-    el('line', {x1:pad.l, y1:y, x2:pad.l+pw, y2:y,
-      stroke: isZero ? '#2a2d40' : '#181a26',
-      'stroke-width': isZero ? '1' : '0.5'}, svg);
-    const t = el('text', {x:pad.l-9, y:y+4, class:'ax-tick', 'text-anchor':'end'}, svg);
-    t.textContent = (v > 0 ? '+' : '') + v + '%';
-  }
+  buildList(winners, 'winners-list', '#1D9E75');
+  buildList(losers,  'losers-list',  '#D85A30');
+}
 
-  // axis labels
-  const xl = el('text', {x:pad.l+pw/2, y:H-6, class:'ax-label', 'text-anchor':'middle'}, svg);
-  xl.textContent = 'March return';
-  const yl = el('text', {x:14, y:pad.t+ph/2, class:'ax-label', 'text-anchor':'middle',
-    transform:`rotate(-90,14,${pad.t+ph/2})`}, svg);
-  yl.textContent = 'YTD return';
+function renderScatter() {
+  if (scatterChart) { scatterChart.destroy(); scatterChart = null; }
+  const data = funds.filter(f => f.ytd !== null).map(f => ({
+    x: f.march,
+    y: f.ytd,
+    name: f.name,
+    color: f.march >= 0 && f.ytd >= 0 ? '#1D9E75'
+         : f.march < 0  && f.ytd < 0  ? '#D85A30'
+         : '#EF9F27'
+  }));
 
-  // quadrant corner labels
-  const qlbls = [
-    {t:'March ↑  YTD ↑', x:sx(xMax)-6, y:pad.t+14, a:'end'},
-    {t:'March ↓  YTD ↑', x:pad.l+6,    y:pad.t+14, a:'start'},
-    {t:'March ↓  YTD ↓', x:pad.l+6,    y:sy(yMin)-6, a:'start'},
-    {t:'March ↑  YTD ↓', x:sx(xMax)-6, y:sy(yMin)-6, a:'end'},
-  ];
-  for (const q of qlbls) {
-    const t = el('text', {x:q.x, y:q.y, class:'q-lbl', 'text-anchor':q.a}, svg);
-    t.textContent = q.t;
-  }
-
-  // dots group (clipped)
-  const g = el('g', {'clip-path':'url(#cp)'}, svg);
-
-  // filter funds
-  const filtered = FUNDS.filter(([name, m, y]) => {
-    const qMatch = activeQ === 'all' || quadrant(m,y) === activeQ;
-    const sMatch = name.toLowerCase().includes(searchTxt);
-    return qMatch && sMatch;
-  });
-  countEl.textContent = filtered.length + (filtered.length === 1 ? ' fund' : ' funds');
-
-  const visibleNames = new Set(filtered.map(f=>f[0]));
-
-  // draw all dots, dim non-matching
-  for (const [name, march, ytd] of FUNDS) {
-    const yv    = ytd ?? 0;
-    const q     = quadrant(march, ytd);
-    const cx    = sx(march);
-    const cy    = sy(yv);
-    const fill  = quadColor(q);
-    const strk  = quadColorDk(q);
-    const vis   = visibleNames.has(name);
-    const isPinned = pinned === name;
-
-    const r = isPinned ? 9 : 6.5;
-    const opacity = vis ? '1' : '0.08';
-
-    const c = el('circle', {
-      cx, cy, r,
-      fill, stroke: strk,
-      'stroke-width': isPinned ? '2' : '1',
-      'fill-opacity': vis ? (isPinned ? '1' : '0.85') : '0.08',
-      'stroke-opacity': opacity,
-      style: vis ? 'cursor:pointer' : 'pointer-events:none',
-      'data-name': name
-    }, g);
-
-    // outlier labels
-    if (vis && (Math.abs(march) > 5.5 || Math.abs(yv) > 10 || name === 'Andurand Commodities')) {
-      const short = name.split(' ').slice(0,2).join(' ');
-      const lx = march > 0 ? cx + 10 : cx - 10;
-      const anchor = march > 0 ? 'start' : 'end';
-      const lbl = el('text', {x:lx, y:cy+4, 'text-anchor':anchor,
-        style:'font-size:10px;fill:#4a4d60;font-family:inherit;pointer-events:none'}, svg);
-      lbl.textContent = short;
-    }
-
-    if (vis) {
-      c.addEventListener('mouseenter', (e) => {
-        if (pinned) return;
-        showTip(name, march, ytd, q);
-        if (!isPinned) { c.setAttribute('r','9'); c.setAttribute('stroke-width','2'); }
-      });
-      c.addEventListener('mousemove', moveTip);
-      c.addEventListener('mouseleave', () => {
-        if (pinned) return;
-        tip.style.opacity = '0';
-        if (!isPinned) { c.setAttribute('r','6.5'); c.setAttribute('stroke-width','1'); }
-      });
-      c.addEventListener('click', () => {
-        if (pinned === name) {
-          pinned = null; tip.style.opacity = '0'; detail.style.display = 'none';
-        } else {
-          pinned = name;
-          tip.style.opacity = '0';
-          showDetail(name, march, ytd, q);
+  scatterChart = new Chart(document.getElementById('scatterChart'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Funds',
+        data: data.map(d => ({ x: d.x, y: d.y })),
+        pointBackgroundColor: data.map(d => d.color),
+        pointBorderColor:     data.map(d => d.color),
+        pointRadius: 6,
+        pointHoverRadius: 9,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = data[ctx.dataIndex];
+              return `${d.name}: March ${d.x > 0 ? '+' : ''}${d.x.toFixed(1)}%,  YTD ${d.y > 0 ? '+' : ''}${d.y.toFixed(1)}%`;
+            }
+          }
         }
-        render();
-      });
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'March return (%)', color: '#888780', font: { size: 12 } },
+          grid:  { color: 'rgba(136,135,128,0.15)' },
+          ticks: { color: '#888780', callback: v => v + '%' }
+        },
+        y: {
+          title: { display: true, text: 'Q1 YTD return (%)', color: '#888780', font: { size: 12 } },
+          grid:  { color: 'rgba(136,135,128,0.15)' },
+          ticks: { color: '#888780', callback: v => v + '%' }
+        }
+      }
     }
-  }
-
-  // diagonal reference line (y=x), very faint
-  el('line', {
-    x1:sx(Math.max(xMin,yMin)), y1:sy(Math.max(xMin,yMin)),
-    x2:sx(Math.min(xMax,yMax)), y2:sy(Math.min(xMax,yMax)),
-    stroke:'#1e2030', 'stroke-width':'0.8',
-    'stroke-dasharray':'3,5', 'clip-path':'url(#cp)'
-  }, svg);
-
-  // diagonal label
-  const dlbl = el('text', {
-    x: sx(10)+8, y: sy(10)-6,
-    style:'font-size:9.5px;fill:#252838;font-family:inherit;',
-    transform:`rotate(-42,${sx(10)},${sy(10)})`
-  }, svg);
-  dlbl.textContent = 'March = YTD';
-}
-
-function showTip(name, march, ytd, q) {
-  tip.innerHTML = `
-    <div class="t-name">${name}</div>
-    <div class="t-row"><span>March</span><span class="t-val ${valClass(march)}">${fmt(march)}</span></div>
-    <div class="t-row"><span>YTD</span><span class="t-val ${valClass(ytd)}">${fmt(ytd)}</span></div>`;
-  tip.style.opacity = '1';
-}
-function moveTip(e) {
-  const vw = window.innerWidth;
-  const x = e.clientX, y = e.clientY;
-  tip.style.left = (x > vw * 0.65 ? x - 190 : x + 14) + 'px';
-  tip.style.top  = (y - 10) + 'px';
-}
-function showDetail(name, march, ytd, q) {
-  document.getElementById('d-name').textContent  = name;
-  const dm = document.getElementById('d-march');
-  const dy = document.getElementById('d-ytd');
-  const dq = document.getElementById('d-quad');
-  dm.textContent = fmt(march); dm.className = 't-val ' + valClass(march);
-  dy.textContent = fmt(ytd);   dy.className = 't-val ' + valClass(ytd);
-  dq.textContent = quadLabel(q);
-  dq.style.color = quadColor(q);
-  detail.style.display = 'block';
-}
-
-document.getElementById('d-close').addEventListener('click', () => {
-  pinned = null; detail.style.display = 'none'; render();
-});
-
-// filter buttons
-document.querySelectorAll('.fbtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    activeQ = btn.dataset.q;
-    document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    pinned = null; detail.style.display = 'none';
-    render();
   });
-});
+}
 
-// search
-document.getElementById('search').addEventListener('input', (e) => {
-  searchTxt = e.target.value.toLowerCase().trim();
-  pinned = null; detail.style.display = 'none';
-  render();
-});
+function initSummary() {
+  const vals = funds.map(f => f.march);
+  document.getElementById('m-winners').textContent = vals.filter(v => v >= 0).length;
+  document.getElementById('m-losers').textContent  = vals.filter(v => v < 0).length;
+  document.getElementById('m-best').textContent    = '+' + Math.max(...vals).toFixed(1) + '%';
+  document.getElementById('m-worst').textContent   = Math.min(...vals).toFixed(1) + '%';
+}
 
-// resize
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(render, 80);
-});
-
-render();
+initSummary();
+renderScatter();
 </script>
 </body>
 </html>
