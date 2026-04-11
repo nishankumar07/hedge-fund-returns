@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hedge Fund Performance — March & Q1 2026</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after {
+    box-sizing: border-box; margin: 0; padding: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #ffffff; color: #1a1a1a; }
   .wrap { padding: 2rem 1.5rem 3rem; max-width: 960px; margin: 0 auto; }
 
@@ -36,13 +42,13 @@
 
   #table-view { display: none; }
   .table-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 0.85rem; flex-wrap: wrap; }
-  .table-search { font-size: 13px; padding: 6px 12px; border-radius: 20px; border: 1px solid #d0d0cc; outline: none; width: 220px; color: #1a1a1a; background: #fff; }
+  .table-search { font-size: 13px; padding: 6px 12px; border-radius: 20px; border: 1px solid #d0d0cc; outline: none; width: 220px; color: #1a1a1a; background: #fff; -webkit-user-select: text; user-select: text; }
   .table-search:focus { border-color: #999; }
   .table-count { font-size: 12px; color: #9b9b9b; margin-left: auto; }
 
   .tbl-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th { text-align: left; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #9b9b9b; padding: 0 10px 8px 0; border-bottom: 1.5px solid #e0e0de; cursor: pointer; user-select: none; white-space: nowrap; }
+  thead th { text-align: left; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #9b9b9b; padding: 0 10px 8px 0; border-bottom: 1.5px solid #e0e0de; cursor: pointer; white-space: nowrap; }
   thead th:hover { color: #1a1a1a; }
   thead th .sa { display: inline-block; margin-left: 4px; font-size: 10px; }
   thead th.sort-asc  .sa::after { content:"▲"; color:#1a1a1a; }
@@ -52,18 +58,16 @@
   tbody tr:hover { background: #fafaf8; }
   tbody tr.dimmed { opacity: 0.15; }
   tbody td { padding: 7px 10px 7px 0; vertical-align: middle; }
-  .strat-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; flex-shrink: 0; }
+  .strat-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
   .ret-cell { font-variant-numeric: tabular-nums; font-weight: 500; }
   .ret-pos { color: #117733; } .ret-neg { color: #882255; }
   .ret-bar-wrap { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
   .ret-bar-bg { width: 60px; height: 6px; background: #f0f0ee; border-radius: 3px; flex-shrink: 0; overflow: hidden; }
   .ret-bar-inner { height: 100%; border-radius: 3px; }
-
-  /* footnote asterisk superscript in table */
   .fn-ref { font-size: 9px; vertical-align: super; color: #9b9b9b; margin-left: 1px; }
 
   .page-footer { font-size: 11px; color: #9b9b9b; border-top: 1px solid #e8e8e6; padding-top: 10px; margin-top: 1.5rem; line-height: 1.7; }
-  .page-footer .fn-line { margin-top: 3px; }
+  .fn-line { margin-top: 3px; }
 
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: repeat(2,1fr); }
@@ -74,16 +78,15 @@
 </head>
 <body>
 <div class="wrap">
-
   <div class="header">
     <h1>Hedge fund performance — March &amp; Q1 2026</h1>
   </div>
 
   <div class="summary-grid">
-    <div class="metric"><div class="lbl">Funds positive (March)</div><div class="val up" id="m-winners">—</div></div>
-    <div class="metric"><div class="lbl">Funds negative (March)</div><div class="val dn" id="m-losers">—</div></div>
-    <div class="metric"><div class="lbl">Best March return</div><div class="val up" id="m-best">—</div></div>
-    <div class="metric"><div class="lbl">Worst March return</div><div class="val dn" id="m-worst">—</div></div>
+    <div class="metric"><div class="lbl">Funds positive (March)</div><div class="val up" id="m-winners"></div></div>
+    <div class="metric"><div class="lbl">Funds negative (March)</div><div class="val dn" id="m-losers"></div></div>
+    <div class="metric"><div class="lbl">Best March return</div><div class="val up" id="m-best"></div></div>
+    <div class="metric"><div class="lbl">Worst March return</div><div class="val dn" id="m-worst"></div></div>
   </div>
 
   <div class="tabs">
@@ -94,15 +97,13 @@
   <div class="legend" id="strategy-legend"></div>
   <p class="legend-hint" id="legend-hint">Click a strategy to filter · click again to clear</p>
 
-  <!-- SCATTER -->
   <div id="scatter-view">
     <div class="scatter-wrap">
-      <canvas id="scatterChart" role="img" aria-label="Scatter chart of hedge fund March vs Q1 YTD 2026 returns on signed log scale, coloured by strategy. Hover dots for details."></canvas>
+      <canvas id="scatterChart" role="img" aria-label="Scatter chart of hedge fund March vs Q1 YTD 2026 returns on signed log scale, coloured by strategy."></canvas>
     </div>
     <p class="note">Axes use signed log scale: sign(x) × log(1+|x|) — compresses extremes, spreads the cluster near zero. Black lines mark 0% on each axis. Hover any dot for actual returns.</p>
   </div>
 
-  <!-- TABLE -->
   <div id="table-view">
     <div class="table-controls">
       <input class="table-search" type="search" placeholder="Search fund or strategy…" id="tbl-search" oninput="renderTable()">
@@ -127,10 +128,19 @@
     <div>All returns net of fees. Data via Bloomberg reporting. Created by Nishant Kumar, Bloomberg.</div>
     <div id="footnote-lines"></div>
   </div>
-
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+// ── Copy protection ────────────────────────────────────────────────────────
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('selectstart', e => { if (!e.target.classList.contains('table-search')) e.preventDefault(); });
+document.addEventListener('dragstart',   e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['c','a','x','u','s'].includes(e.key.toLowerCase())) e.preventDefault();
+});
+
+// ── Strategy palette (Wong 2011, colorblind-safe) ──────────────────────────
 const STRAT_COLORS = {
   "Equity":         "#0077BB",
   "Macro":          "#EE7733",
@@ -141,127 +151,149 @@ const STRAT_COLORS = {
   "Commodities":    "#228833",
   "Volatility":     "#BBBBBB",
   "Fixed Income":   "#332288",
-};
-const STRAT_MAP = {
-  "Commodities":"Commodities","Long Vol":"Volatility","Systematic Macro":"Macro",
-  "Quant":"Quant","Quant Multistrat":"Quant","Event-Driven":"Event-Driven",
-  "Credit RV":"Credit / RV","Relative Value":"Credit / RV","Multistrat":"Multi-strategy",
-  "Equity":"Equity","Equity/Venture":"Equity","Macro":"Macro",
-  "Distressed":"Credit / RV","Systematic":"Quant","Fixed Income":"Fixed Income",
+  // Extended slots for new strategies (auto-assigned):
+  // "#44BB99","#BBCC33","#99DDFF","#EE8866","#DDAA33","#CC6677","#6699CC","#882255"
 };
 
-// note: each fund can have a `note` field — a short asterisk-referenced note.
-// These are collected and rendered in the page footer automatically.
-const funds = [
-  {name:"Andurand Commodities",         strat:"Commodities",      march: 30.6, ytd: 31.1},
-  {name:"36 South Kohinoor",            strat:"Long Vol",         march:  8.6, ytd: 18.6},
-  {name:"Kepos Alpha",                  strat:"Systematic Macro", march:  7.5, ytd:  9.3},
-  {name:"CFM Cumulus",                  strat:"Quant",            march:  6.0, ytd:  6.7},
-  {name:"CFM Stratus",                  strat:"Quant Multistrat", march:  6.0, ytd:  5.5},
-  {name:"Two Seas Global",              strat:"Event-Driven",     march:  5.0, ytd: 12.0},
-  {name:"Saba Capital",                 strat:"Credit RV",        march:  4.4, ytd:  7.3},
-  {name:"DE Shaw Oculus",               strat:"Multistrat",       march:  3.9, ytd:  7.0},
-  {name:"ADAPT",                        strat:"Relative Value",   march:  3.3, ytd:  7.5},
-  {name:"Graham Tactical Trend",        strat:"Quant",            march:  3.1, ytd: 13.1},
-  {name:"Two Sigma Absolute Return",    strat:"Multistrat",       march:  3.0, ytd:  3.7},
-  {name:"Two Sigma Spectrum",           strat:"Multistrat",       march:  2.5, ytd:  3.0},
-  {name:"DE Shaw Composite",            strat:"Multistrat",       march:  2.2, ytd:  4.9},
-  {name:"Rokos",                        strat:"Macro",            march:  2.1, ytd:  4.7},
-  {name:"Citadel Tactical Trading",     strat:"Multistrat",       march:  1.8, ytd:  5.3},
-  {name:"Renaissance RIDA",             strat:"Quant",            march:  1.2, ytd:  8.0},
-  {name:"Renaissance RIEF",             strat:"Quant",            march:  0.9, ytd: -0.8},
-  {name:"Citadel Equities",             strat:"Equity",           march:  0.7, ytd:  2.9},
-  {name:"Glazer Enhanced",              strat:"Event-Driven",     march:  0.6, ytd:  1.7},
-  {name:"Winton",                       strat:"Multistrat",       march:  0.3, ytd:  6.7},
-  {name:"Centiva",                      strat:"Multistrat",       march:  0.1, ytd:  3.9},
-  {name:"Schonfeld Fundamental Equity", strat:"Equity",           march:  0.0, ytd:  1.6},
-  {name:"Schonfeld Strategic Partners", strat:"Multistrat",       march:  0.0, ytd:  0.9},
-  {name:"Boussard & Gavaudan",          strat:"Event-Driven",     march:  0.0, ytd:  3.9},
-  {name:"Kite Lake Special Opps",       strat:"Event-Driven",     march: -0.1, ytd:  2.5},
-  {name:"Modular Asian Macro",          strat:"Macro",            march: -0.5, ytd:  2.9},
-  {name:"Jain Global",                  strat:"Multistrat",       march: -0.5, ytd: -2.7},
-  {name:"Point72",                      strat:"Multistrat",       march: -0.7, ytd:  3.8},
-  {name:"North Rock",                   strat:"Equity",           march: -0.7, ytd:  2.1},
-  {name:"Shiprock",                     strat:"Distressed",       march: -1.0, ytd:  6.8},
-  {name:"Millennium",                   strat:"Multistrat",       march: -1.2, ytd:  1.0},
-  {name:"Walleye",                      strat:"Multistrat",       march: -1.3, ytd: -2.6},
-  {name:"Man 1783",                     strat:"Multistrat",       march: -1.6, ytd:  4.2},
-  {name:"Greenlight",                   strat:"Equity",           march: -1.8, ytd:  6.5},
-  {name:"Mission Crest Dynamic",        strat:"Multistrat",       march: -1.8, ytd:  6.9},
-  {name:"Verition",                     strat:"Multistrat",       march: -1.9, ytd: -0.4},
-  {name:"Brummer Multi-Strategy",       strat:"Multistrat",       march: -1.9, ytd:  4.3},
-  {name:"Citadel Wellington",           strat:"Multistrat",       march: -1.9, ytd:  1.0},
-  {name:"LMR",                          strat:"Multistrat",       march: -2.4, ytd: -0.3},
-  {name:"Pinpoint Multi-Strategy",      strat:"Multistrat",       march: -2.5, ytd:  4.0},
-  {name:"Marshall Wace MN TOPS",        strat:"Systematic",       march: -2.5, ytd: -0.3},
-  {name:"Graham Quant Macro",           strat:"Quant",            march: -2.9, ytd:  6.6},
-  {name:"Tiger Global Crossover",       strat:"Equity/Venture",   march: -3.2, ytd: -1.2},
-  {name:"Brevan Howard Alpha",          strat:"Multistrat",       march: -3.9, ytd:  0.3},
-  {name:"Discovery",                    strat:"Macro",            march: -4.1, ytd:  5.7},
-  {name:"Viking Global",                strat:"Equity",           march: -4.1, ytd: -4.6},
-  {name:"Dymon",                        strat:"Multistrat",       march: -4.3, ytd:  6.0},
-  {name:"Balyasny",                     strat:"Multistrat",       march: -4.3, ytd: -3.8},
-  {name:"ExodusPoint",                  strat:"Multistrat",       march: -4.5, ytd: -2.0},
-  {name:"Coatue",                       strat:"Equity",           march: -4.8, ytd: -3.5},
-  {name:"Maverick Fund",                strat:"Equity",           march: -5.0, ytd: -1.5},
-  {name:"FengHe Asia",                  strat:"Equity",           march: -5.3, ytd: 11.5},
-  {name:"Marshall Wace Eureka",         strat:"Equity",           march: -5.3, ytd:  0.8},
-  {name:"Graham Absolute Return",       strat:"Macro",            march: -6.1, ytd: -4.7},
-  {name:"Pharo Macro",                  strat:"Macro",            march: -6.2, ytd:  4.4},
-  {name:"Brevan Howard Master",         strat:"Macro",            march: -6.6, ytd: -1.1},
-  {name:"RV Capital Enhanced",          strat:"Macro",            march: -6.9, ytd: -5.8},
-  {name:"Tiger Global",                 strat:"Equity",           march: -7.3, ytd:-10.5},
-  {name:"Maverick Long Enhanced",       strat:"Equity",           march: -8.1, ytd: -4.5},
-  {name:"Citadel Global Fixed Income",  strat:"Fixed Income",     march: -8.2, ytd: -5.5},
-  {name:"Quantedge Global",             strat:"Quant",            march: -8.4, ytd: 12.7},
-  {name:"Taula",                        strat:"Macro",            march: -8.6, ytd: -7.6},
-  {name:"EDL",                          strat:"Macro",            march:-11.2, ytd: -7.5},
-  {name:"Haidar Jupiter",               strat:"Macro",            march:-12.0, ytd: 13.4},
-  {name:"Caxton Macro",                 strat:"Macro",            march:-15.0, ytd: null,
-   note:"Return through March 20 only"},
+const STRAT_MAP = {
+  "Commodities":"Commodities",
+  "Long Volatility":"Volatility",  "Long Vol":"Volatility",  "Volatility":"Volatility", "Tail Risk":"Volatility", "Vol Arb":"Volatility",
+  "Systematic Macro":"Macro",      "Global Macro":"Macro",   "Macro":"Macro",           "Discretionary Macro":"Macro",
+  "Quant":"Quant",                 "Quant Multistrat":"Quant","Systematic":"Quant",     "CTA":"Quant", "Trend Following":"Quant",
+  "Event-Driven":"Event-Driven",   "Merger Arb":"Event-Driven","Risk Arb":"Event-Driven","Activist":"Event-Driven","Special Situations":"Event-Driven",
+  "Credit RV":"Credit / RV",       "Relative Value":"Credit / RV","Distressed":"Credit / RV","Credit":"Credit / RV","Fixed Income RV":"Credit / RV",
+  "Multistrategy":"Multi-strategy","Multistrat":"Multi-strategy","Multi-strategy":"Multi-strategy","Multimanager":"Multi-strategy","Multi-strat":"Multi-strategy",
+  "Equity":"Equity",               "Long/Short Equity":"Equity","Equity/Venture":"Equity","Equity and Venture":"Equity","Equity Multimanager":"Equity","Multimanager Equity":"Equity",
+  "Fixed Income":"Fixed Income",   "Rates":"Fixed Income",   "Bonds":"Fixed Income",   "Duration":"Fixed Income",
+};
+
+// ── Fund data (built from uploaded PDF) ───────────────────────────────────
+const RAW = [
+  ["Andurand Commodities","Commodities",30.6,31.1,null],
+  ["36 South Kohinoor","Long Volatility",8.6,18.6,null],
+  ["Kepos Alpha","Systematic Macro",7.5,9.3,null],
+  ["CFM Cumulus","Quant",6.0,6.7,null],
+  ["CFM Stratus","Quant",6.0,5.5,null],
+  ["Two Seas Global","Event-Driven",5.0,12.0,null],
+  ["Saba Capital","Credit RV",4.4,7.3,null],
+  ["DE Shaw Oculus","Multistrategy",3.9,7.0,null],
+  ["ADAPT","Relative Value",3.3,7.5,null],
+  ["Graham Tactical Trend","Quant",3.1,13.1,null],
+  ["Two Sigma Absolute Return","Multistrategy",3.0,3.7,null],
+  ["Two Sigma Spectrum","Multistrategy",2.5,3.0,null],
+  ["DE Shaw Composite","Multistrategy",2.2,4.9,null],
+  ["Rokos","Macro",2.1,4.7,null],
+  ["Citadel Tactical Trading","Multistrategy",1.8,5.3,null],
+  ["Renaissance RIDA","Quant",1.2,8.0,null],
+  ["Renaissance RIEF","Quant",0.9,-0.8,null],
+  ["Citadel Equities","Equity",0.7,2.9,null],
+  ["Glazer Enhanced","Event-Driven",0.6,1.7,null],
+  ["Winton","Multistrategy",0.3,6.7,null],
+  ["Centiva","Multistrategy",0.1,3.9,null],
+  ["Schonfeld Fundamental Equity","Multimanager Equity",0.0,1.6,null],
+  ["Schonfeld Strategic Partners","Multistrategy",0.0,0.9,null],
+  ["Boussard & Gavaudan","Event-Driven",0.0,3.9,null],
+  ["Kite Lake Special Opportunities","Event-Driven",-0.1,2.5,null],
+  ["Modular Asian Macro","Macro",-0.5,2.9,null],
+  ["Jain Global","Multistrategy",-0.5,-2.7,null],
+  ["Point72","Multistrategy",-0.7,3.8,null],
+  ["North Rock","Multimanager Equity",-0.7,2.1,null],
+  ["Shiprock","Distressed",-1.0,6.8,null],
+  ["Millennium","Multistrategy",-1.2,1.0,null],
+  ["Walleye","Multistrategy",-1.3,-2.6,null],
+  ["Man Strategies 1783","Multistrategy",-1.6,4.2,null],
+  ["Greenlight","Equity",-1.8,6.5,null],
+  ["Mission Crest Dynamic","Multistrategy",-1.8,6.9,null],
+  ["Verition","Multistrategy",-1.9,-0.4,null],
+  ["Brummer Multi-Strategy","Multistrategy",-1.9,4.3,null],
+  ["Citadel Wellington","Multistrategy",-1.9,1.0,null],
+  ["LMR","Multistrategy",-2.4,-0.3,null],
+  ["Pinpoint Multi-Strategy","Multistrategy",-2.5,4.0,null],
+  ["Marshall Wace MN TOPS","Systematic",-2.5,-0.3,null],
+  ["Graham Quant Macro","Quant",-2.9,6.6,null],
+  ["Tiger Global Crossover","Equity and Venture",-3.2,-1.2,null],
+  ["Brevan Howard Alpha Strategies","Multistrategy",-3.9,0.3,null],
+  ["Discovery","Macro",-4.1,5.7,null],
+  ["Viking Global","Equity",-4.1,-4.6,null],
+  ["Dymon","Multistrategy",-4.3,6.0,null],
+  ["Balyasny","Multistrategy",-4.3,-3.8,null],
+  ["ExodusPoint","Multistrategy",-4.5,-2.0,null],
+  ["Coatue","Equity",-4.8,-3.5,null],
+  ["Maverick Fund","Equity",-5.0,-1.5,null],
+  ["FengHe Asia","Equity",-5.3,11.5,null],
+  ["Marshall Wace Eureka","Equity",-5.3,0.8,null],
+  ["Graham Absolute Return","Macro",-6.1,-4.7,null],
+  ["Pharo Macro","Macro",-6.2,4.4,null],
+  ["Brevan Howard Master","Macro",-6.6,-1.1,null],
+  ["RV Capital Enhanced Return","Macro",-6.9,-5.8,null],
+  ["Tiger Global","Equity",-7.3,-10.5,null],
+  ["Maverick Long Enhanced","Equity",-8.1,-4.5,null],
+  ["Citadel Global Fixed Income","Fixed Income",-8.2,-5.5,null],
+  ["Quantedge Global","Quant",-8.4,12.7,null],
+  ["Taula","Macro",-8.6,-7.6,null],
+  ["EDL","Macro",-11.2,-7.5,null],
+  ["Haidar Jupiter","Macro",-12.0,13.4,null],
+  ["Caxton Macro","Macro",-15.0,null,"Return through March 20 only"],
 ];
 
-// ── Build footnote index ──────────────────────────────────────────────────────
-// Assign a sequential symbol (*, †, ‡ …) to each fund that has a note.
-const SYMBOLS = ['*','†','‡','§','¶','#'];
-const noteMap = {};   // fund name → symbol
-let symIdx = 0;
-funds.forEach(f => {
-  if (f.note) { noteMap[f.name] = SYMBOLS[symIdx++] || String(symIdx); }
-});
+// Build structured fund objects
+const funds = RAW.map(r => ({
+  name:  r[0],
+  rawStrat: r[1],
+  march: r[2],
+  ytd:   r[3],
+  note:  r[4] || null,
+}));
 
-// Render footnote lines in footer
-const fnContainer = document.getElementById('footnote-lines');
-funds.filter(f => f.note).forEach(f => {
-  const div = document.createElement('div');
-  div.className = 'fn-line';
-  div.textContent = `${noteMap[f.name]} ${f.name}: ${f.note}`;
-  fnContainer.appendChild(div);
-});
+// ── Resolve strategy labels (auto-detect unknowns) ─────────────────────────
+const EXTENDED_PALETTE = ["#44BB99","#BBCC33","#99DDFF","#EE8866","#DDAA33","#CC6677","#6699CC"];
+let extIdx = 0;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const slog       = v => Math.sign(v) * Math.log1p(Math.abs(v));
-const stratLabel = raw => STRAT_MAP[raw] || "Multi-strategy";
-const stratColor = raw => STRAT_COLORS[stratLabel(raw)] || "#BBBBBB";
+function stratLabel(raw) {
+  if (STRAT_MAP[raw]) return STRAT_MAP[raw];
+  // Auto-assign new strategy
+  if (!STRAT_COLORS[raw]) {
+    STRAT_COLORS[raw] = EXTENDED_PALETTE[extIdx++ % EXTENDED_PALETTE.length];
+    STRAT_MAP[raw] = raw;
+  }
+  return raw;
+}
+function stratColor(raw) { return STRAT_COLORS[stratLabel(raw)] || "#BBBBBB"; }
 const hexA = (hex, a) => {
-  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
 };
-const fmtRet = v => v===null ? '—' : (v>0?'+':'') + v.toFixed(1)+'%';
+const fmtRet = v => v===null ? '—' : (v>0?'+':'') + v.toFixed(1) + '%';
+const slog   = v => Math.sign(v) * Math.log1p(Math.abs(v));
 
-// ── Legend chips ──────────────────────────────────────────────────────────────
+// ── Footnotes ──────────────────────────────────────────────────────────────
+const SYMBOLS = ['*','†','‡','§','¶','#'];
+const noteMap = {};
+let symIdx = 0;
+funds.forEach(f => { if (f.note) noteMap[f.name] = SYMBOLS[symIdx++] || String(symIdx); });
+const fnContainer = document.getElementById('footnote-lines');
+funds.filter(f => f.note).forEach(f => {
+  const d = document.createElement('div');
+  d.className = 'fn-line';
+  d.textContent = `${noteMap[f.name]} ${f.name}: ${f.note}`;
+  fnContainer.appendChild(d);
+});
+
+// ── Legend chips ───────────────────────────────────────────────────────────
 let activeStrat = null;
 const legendEl  = document.getElementById('strategy-legend');
 const seen = new Set();
 funds.forEach(f => {
-  const s = stratLabel(f.strat);
+  const s = stratLabel(f.rawStrat);
   if (!seen.has(s)) {
     seen.add(s);
     const chip = document.createElement('button');
     chip.className = 'legend-chip';
     chip.dataset.strat = s;
-    chip.style.setProperty('--c', STRAT_COLORS[s]);
-    chip.innerHTML = `<span class="legend-swatch" style="background:${STRAT_COLORS[s]};"></span>${s}`;
+    chip.style.setProperty('--c', STRAT_COLORS[s] || "#BBBBBB");
+    const sw = document.createElement('span'); sw.className = 'legend-swatch'; sw.style.background = STRAT_COLORS[s] || "#BBBBBB";
+    chip.appendChild(sw);
+    chip.appendChild(document.createTextNode(s));
     chip.addEventListener('click', () => toggleFilter(s));
     legendEl.appendChild(chip);
   }
@@ -282,26 +314,28 @@ function updateChips() {
     : 'Click a strategy to filter · click again to clear';
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
 let scatterChart = null;
 let currentView  = 'scatter';
 let sortCol = 'march', sortDir = 'desc';
 
-// ── Zero-axis plugin ──────────────────────────────────────────────────────────
-const zeroLinePlugin = {
-  id: 'zeroLines',
+// ── Zero-axis + watermark plugin ───────────────────────────────────────────
+const overlayPlugin = {
+  id: 'overlay',
   afterDraw(chart) {
     const {ctx, chartArea:ca, scales} = chart;
     if (!scales.x || !scales.y) return;
+    // Zero lines
     const x0 = scales.x.getPixelForValue(0), y0 = scales.y.getPixelForValue(0);
-    ctx.save(); ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1.5;
+    ctx.save();
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(x0, ca.top);  ctx.lineTo(x0, ca.bottom); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(ca.left, y0); ctx.lineTo(ca.right, y0);  ctx.stroke();
     ctx.restore();
   }
 };
 
-// ── View switcher ─────────────────────────────────────────────────────────────
+// ── View switcher ──────────────────────────────────────────────────────────
 function switchView(v, e) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   e.target.classList.add('active');
@@ -311,7 +345,7 @@ function switchView(v, e) {
   if (v==='scatter') renderScatter(); else renderTable();
 }
 
-// ── Scatter ───────────────────────────────────────────────────────────────────
+// ── Scatter ────────────────────────────────────────────────────────────────
 function renderScatter() {
   if (scatterChart) { scatterChart.destroy(); scatterChart = null; }
   const data = funds.filter(f => f.ytd !== null);
@@ -319,7 +353,7 @@ function renderScatter() {
   const ticks = tickVals.map(v => ({value:slog(v), label:(v>0?'+':'')+v+'%'}));
   const groups = {};
   data.forEach((f,i) => {
-    const s = stratLabel(f.strat);
+    const s = stratLabel(f.rawStrat);
     if (!groups[s]) groups[s] = {indices:[], points:[]};
     groups[s].indices.push(i);
     groups[s].points.push({x:slog(f.march), y:slog(f.ytd)});
@@ -331,7 +365,7 @@ function renderScatter() {
       pointBorderWidth:1, pointRadius:4, pointHoverRadius:7};
   });
   scatterChart = new Chart(document.getElementById('scatterChart'), {
-    type:'scatter', data:{datasets}, plugins:[zeroLinePlugin],
+    type:'scatter', data:{datasets}, plugins:[overlayPlugin],
     options:{
       responsive:true, maintainAspectRatio:false,
       layout:{padding:{top:14,right:18,bottom:8,left:8}},
@@ -341,17 +375,21 @@ function renderScatter() {
           backgroundColor:'rgba(15,15,15,0.92)', titleColor:'#fff', bodyColor:'#ccc', padding:10,
           filter: item => {
             const f = item.dataset._data[item.dataset._idx[item.dataIndex]];
-            return !activeStrat || stratLabel(f.strat)===activeStrat;
+            return !activeStrat || stratLabel(f.rawStrat)===activeStrat;
           },
           callbacks:{
             title: ctx => {
               const f = ctx[0].dataset._data[ctx[0].dataset._idx[ctx[0].dataIndex]];
-              const sym = noteMap[f.name] || '';
-              return f.name + (sym ? ' '+sym : '');
+              const sym = noteMap[f.name]||'';
+              return f.name + (sym?' '+sym:'');
             },
             label: ctx => {
               const f = ctx.dataset._data[ctx.dataset._idx[ctx.dataIndex]];
-              const lines = [`Strategy: ${stratLabel(f.strat)}`, `March:    ${fmtRet(f.march)}`, `YTD:      ${fmtRet(f.ytd)}`];
+              const lines = [
+                `Strategy: ${stratLabel(f.rawStrat)}`,
+                `March:    ${fmtRet(f.march)}`,
+                `YTD:      ${fmtRet(f.ytd)}`,
+              ];
               if (f.note) lines.push(`Note:     ${f.note}`);
               return lines;
             }
@@ -359,22 +397,27 @@ function renderScatter() {
         }
       },
       scales:{
-        x:{ title:{display:true, text:'March return  (signed log scale)', color:'#9b9b9b', font:{size:12}},
-            grid:{color:'rgba(0,0,0,0.05)'},
-            ticks:{color:'#9b9b9b', font:{size:10}, autoSkip:false, maxRotation:45,
-              callback(val){const m=ticks.find(t=>Math.abs(t.value-val)<0.015); return m?m.label:'';}},
-            afterBuildTicks:axis=>{axis.ticks=ticks.map(t=>({value:t.value}));},
-            min:slog(-16.5), max:slog(33)},
-        y:{ title:{display:true, text:'Q1 YTD return  (signed log scale)', color:'#9b9b9b', font:{size:12}},
-            grid:{color:'rgba(0,0,0,0.05)'},
-            ticks:{color:'#9b9b9b', font:{size:10}, autoSkip:false,
-              callback(val){const m=ticks.find(t=>Math.abs(t.value-val)<0.015); return m?m.label:'';}},
-            afterBuildTicks:axis=>{axis.ticks=ticks.map(t=>({value:t.value}));},
-            min:slog(-12), max:slog(35)}
+        x:{
+          title:{display:true, text:'March return  (signed log scale)', color:'#9b9b9b', font:{size:12}},
+          grid:{color:'rgba(0,0,0,0.05)'},
+          ticks:{color:'#9b9b9b', font:{size:10}, autoSkip:false, maxRotation:45,
+            callback(val){const m=ticks.find(t=>Math.abs(t.value-val)<0.015); return m?m.label:'';}},
+          afterBuildTicks:axis=>{axis.ticks=ticks.map(t=>({value:t.value}));},
+          min:slog(-16.5), max:slog(33)
+        },
+        y:{
+          title:{display:true, text:'Q1 YTD return  (signed log scale)', color:'#9b9b9b', font:{size:12}},
+          grid:{color:'rgba(0,0,0,0.05)'},
+          ticks:{color:'#9b9b9b', font:{size:10}, autoSkip:false,
+            callback(val){const m=ticks.find(t=>Math.abs(t.value-val)<0.015); return m?m.label:'';}},
+          afterBuildTicks:axis=>{axis.ticks=ticks.map(t=>({value:t.value}));},
+          min:slog(-12), max:slog(35)
+        }
       }
     }
   });
 }
+
 function applyScatterFilter() {
   if (!scatterChart) return;
   scatterChart.data.datasets.forEach(ds => {
@@ -385,7 +428,7 @@ function applyScatterFilter() {
   scatterChart.update('none');
 }
 
-// ── Table ─────────────────────────────────────────────────────────────────────
+// ── Table ──────────────────────────────────────────────────────────────────
 const maxMarch = Math.max(...funds.map(f=>Math.abs(f.march)));
 const maxYtd   = Math.max(...funds.filter(f=>f.ytd!==null).map(f=>Math.abs(f.ytd)));
 
@@ -401,52 +444,97 @@ function sortTable(col) {
 
 function renderTable() {
   const q = document.getElementById('tbl-search').value.toLowerCase();
-  let rows = [...funds].filter(f => !q || f.name.toLowerCase().includes(q) || stratLabel(f.strat).toLowerCase().includes(q));
+  let rows = [...funds].filter(f =>
+    !q || f.name.toLowerCase().includes(q) || stratLabel(f.rawStrat).toLowerCase().includes(q)
+  );
   rows.sort((a,b) => {
     let av, bv;
-    if      (sortCol==='name')  { av=a.name;               bv=b.name; }
-    else if (sortCol==='strat') { av=stratLabel(a.strat);   bv=stratLabel(b.strat); }
-    else if (sortCol==='march') { av=a.march;               bv=b.march; }
-    else                        { av=a.ytd??-999;           bv=b.ytd??-999; }
+    if      (sortCol==='name')  { av=a.name;                    bv=b.name; }
+    else if (sortCol==='strat') { av=stratLabel(a.rawStrat);     bv=stratLabel(b.rawStrat); }
+    else if (sortCol==='march') { av=a.march;                    bv=b.march; }
+    else                        { av=a.ytd??-999;                bv=b.ytd??-999; }
     return (av<bv?-1:av>bv?1:0) * (sortDir==='asc'?1:-1);
   });
   document.getElementById('tbl-count').textContent = `${rows.length} fund${rows.length!==1?'s':''}`;
   const tbody = document.getElementById('tbl-body');
   tbody.innerHTML = '';
   rows.forEach(f => {
-    const sl  = stratLabel(f.strat), c = stratColor(f.strat);
+    const sl  = stratLabel(f.rawStrat);
+    const c   = stratColor(f.rawStrat);
     const sym = noteMap[f.name] || '';
     const dim = activeStrat && activeStrat !== sl;
     const mPct = (Math.abs(f.march)/maxMarch*100).toFixed(1);
     const yPct = f.ytd!==null ? (Math.abs(f.ytd)/maxYtd*100).toFixed(1) : 0;
+
     const tr = document.createElement('tr');
     if (dim) tr.classList.add('dimmed');
     tr.dataset.strat = sl;
-    // Fund name with superscript symbol if noted
-    const nameCell = `<td>${f.name}${sym?`<span class="fn-ref">${sym}</span>`:''}</td>`;
-    tr.innerHTML =
-      nameCell +
-      `<td><span class="strat-dot" style="background:${c};"></span>${sl}</td>` +
-      `<td style="text-align:right;padding-right:0;"><div class="ret-bar-wrap"><div class="ret-bar-bg"><div class="ret-bar-inner" style="width:${mPct}%;background:${c};"></div></div><span class="ret-cell ${f.march>=0?'ret-pos':'ret-neg'}" style="min-width:52px;text-align:right;">${fmtRet(f.march)}</span></div></td>` +
-      `<td style="text-align:right;padding-right:0;"><div class="ret-bar-wrap"><div class="ret-bar-bg">${f.ytd!==null?`<div class="ret-bar-inner" style="width:${yPct}%;background:${c};"></div>`:''}</div><span class="ret-cell ${f.ytd===null?'':(f.ytd>=0?'ret-pos':'ret-neg')}" style="min-width:52px;text-align:right;">${fmtRet(f.ytd)}</span></div></td>`;
+
+    // Fund name cell — built via DOM (not innerHTML) so data isn't plain HTML text
+    const tdName = document.createElement('td');
+    tdName.appendChild(document.createTextNode(f.name));
+    if (sym) {
+      const sup = document.createElement('span');
+      sup.className = 'fn-ref';
+      sup.textContent = sym;
+      tdName.appendChild(sup);
+    }
+
+    // Strategy cell
+    const tdStrat = document.createElement('td');
+    const dot = document.createElement('span'); dot.className = 'strat-dot'; dot.style.background = c;
+    tdStrat.appendChild(dot);
+    tdStrat.appendChild(document.createTextNode(sl));
+
+    // March cell
+    const tdMarch = document.createElement('td');
+    tdMarch.style.cssText = 'text-align:right;padding-right:0;';
+    const mWrap = document.createElement('div'); mWrap.className = 'ret-bar-wrap';
+    const mBg = document.createElement('div'); mBg.className = 'ret-bar-bg';
+    const mBar = document.createElement('div'); mBar.className = 'ret-bar-inner'; mBar.style.cssText = `width:${mPct}%;background:${c};`;
+    mBg.appendChild(mBar);
+    const mVal = document.createElement('span');
+    mVal.className = `ret-cell ${f.march>=0?'ret-pos':'ret-neg'}`;
+    mVal.style.cssText = 'min-width:52px;text-align:right;';
+    mVal.textContent = fmtRet(f.march);
+    mWrap.appendChild(mBg); mWrap.appendChild(mVal);
+    tdMarch.appendChild(mWrap);
+
+    // YTD cell
+    const tdYtd = document.createElement('td');
+    tdYtd.style.cssText = 'text-align:right;padding-right:0;';
+    const yWrap = document.createElement('div'); yWrap.className = 'ret-bar-wrap';
+    const yBg = document.createElement('div'); yBg.className = 'ret-bar-bg';
+    if (f.ytd !== null) {
+      const yBar = document.createElement('div'); yBar.className = 'ret-bar-inner'; yBar.style.cssText = `width:${yPct}%;background:${c};`;
+      yBg.appendChild(yBar);
+    }
+    const yVal = document.createElement('span');
+    yVal.className = `ret-cell ${f.ytd===null?'':(f.ytd>=0?'ret-pos':'ret-neg')}`;
+    yVal.style.cssText = 'min-width:52px;text-align:right;';
+    yVal.textContent = fmtRet(f.ytd);
+    yWrap.appendChild(yBg); yWrap.appendChild(yVal);
+    tdYtd.appendChild(yWrap);
+
+    tr.appendChild(tdName); tr.appendChild(tdStrat); tr.appendChild(tdMarch); tr.appendChild(tdYtd);
     tbody.appendChild(tr);
   });
-  // re-apply sort arrows
+
   document.querySelectorAll('thead th').forEach(th => {
     th.classList.remove('sort-asc','sort-desc');
     if (th.dataset.col===sortCol) th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
   });
 }
 
-// ── Summary cards ─────────────────────────────────────────────────────────────
-function initSummary() {
+// ── Summary cards ──────────────────────────────────────────────────────────
+(function initSummary() {
   const m = funds.map(f => f.march);
   document.getElementById('m-winners').textContent = m.filter(v=>v>=0).length;
   document.getElementById('m-losers').textContent  = m.filter(v=>v<0).length;
   document.getElementById('m-best').textContent    = '+' + Math.max(...m).toFixed(1) + '%';
   document.getElementById('m-worst').textContent   = Math.min(...m).toFixed(1) + '%';
-}
-initSummary();
+})();
+
 renderScatter();
 </script>
 </body>
